@@ -5,9 +5,26 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include "gtk_drawings.h"
+#include "global_parameters.h"
 
-static void cb_button_clicked(GtkWidget *button, gpointer user_data) {
+static void cb_quit_clicked(GtkWidget *button, gpointer data) {
     gtk_main_quit();
+}
+
+static void cb_cube_clicked(GtkWidget *button, gpointer data) {
+    CurrentMode = PUT_CUBE;
+}
+
+static void cb_cylinder_clicked(GtkWidget *button, gpointer data) {
+    CurrentMode = PUT_CYLINDER;
+}
+
+static void cb_point_clicked(GtkWidget *button, gpointer data) {
+    CurrentMode = PUT_POINT;
+}
+
+static void cb_run_clicked(GtkWidget *button, gpointer data) {
+    CurrentMode = RUN;
 }
 
 static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) {
@@ -25,7 +42,7 @@ static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) 
     cr = gdk_drawing_context_get_cairo_context(context);
 
     int offset = 30;
-    int max = 640;
+    int max = WINDOW_SIZE;
 
     {
         double wall = 20.0; // この半分が外枠の太さ
@@ -108,7 +125,11 @@ void gtk_window() {
                 gtk_box_pack_start(GTK_BOX(vbox), run, TRUE, TRUE, 0);
                 gtk_box_pack_start(GTK_BOX(vbox), quit, TRUE, TRUE, 0);
 
-                g_signal_connect(quit, "clicked", G_CALLBACK(cb_button_clicked), NULL);
+                g_signal_connect(cube, "clicked", G_CALLBACK(cb_cube_clicked), NULL);
+                g_signal_connect(cylinder, "clicked", G_CALLBACK(cb_cylinder_clicked), NULL);
+                g_signal_connect(point, "clicked", G_CALLBACK(cb_point_clicked), NULL);
+                g_signal_connect(run, "clicked", G_CALLBACK(cb_run_clicked), NULL);
+                g_signal_connect(quit, "clicked", G_CALLBACK(cb_quit_clicked), NULL);
             }
             gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 0);
         }

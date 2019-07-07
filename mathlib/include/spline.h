@@ -8,10 +8,10 @@
 typedef struct {
     int num;
     matrix xy;
-} SplinePoints;
+} SplineBasePoints;
 
-int spline_points_new(SplinePoints *Points, int num, matrix base);
+int spline_points_new(SplineBasePoints *Points, int num, matrix base);
 
-int spline(SplinePoints Points, matrix *answer);
+int spline(SplineBasePoints Points, matrix *answer);
 
 #endif //FINAL_SPLINE_H

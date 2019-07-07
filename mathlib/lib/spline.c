@@ -15,7 +15,7 @@ double pow_double(double base, double exp) {
 }
 
 // base[point_num][0],base[point_num][1]からSplinePointsに座標抽出
-int spline_points_new(SplinePoints *Points, int num, matrix base) {
+int spline_points_new(SplineBasePoints *Points, int num, matrix base) {
     if (base.col == 2 && base.row == MAX_POINTS) {
         Points->num = num;
         mat_alloc(&Points->xy, MAX_POINTS, 2);
@@ -27,8 +27,8 @@ int spline_points_new(SplinePoints *Points, int num, matrix base) {
 }
 
 // answerの上から4つずつが3次関数の係数
-int spline(SplinePoints Points, matrix *answer) {
-    if (answer->row == (Points.num - 1) * 4 && answer->col == 1) {
+int spline(SplineBasePoints Points, matrix *answer) {
+    if (Points.num >= 3 && answer->row == (Points.num - 1) * 4 && answer->col == 1) {
         matrix A = mat_new((Points.num - 1) * 4, (Points.num - 1) * 4);
         matrix B = mat_new((Points.num - 1) * 4, 1);
 

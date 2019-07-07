@@ -7,7 +7,7 @@
 
 int main(int argc, char **argv) {
     /*
-    SplinePoints Points;
+    SplineBasePoints Points;
     matrix base;
     mat_alloc(&base, MAX_POINTS, 2);
     base.main[0][0] = 0.0;
