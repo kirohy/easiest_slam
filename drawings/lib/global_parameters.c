@@ -6,7 +6,7 @@
 
 int MapState[WINDOW_SIZE][WINDOW_SIZE];
 
-int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][2];
+int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][3];
 
 int ObjectNum = 0;
 
@@ -17,3 +17,5 @@ Object CurrentObj;
 Object ObjectList[MAX_OBJECT];
 
 Mode CurrentMode = PUT_CUBE;
+
+SplineBasePoints SplinePoints;

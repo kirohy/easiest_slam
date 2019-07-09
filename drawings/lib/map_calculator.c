@@ -3,33 +3,54 @@
 //
 
 #include "map_calculator.h"
+#include "spline.h"
 
-void init_map(int map[WINDOW_SIZE][WINDOW_SIZE]) {
+void init_map() {
     for (int i = 0; i < WINDOW_SIZE; i++) {
         for (int j = 0; j < WINDOW_SIZE; j++) {
-            map[i][j] = 0;
+            MapState[i][j] = 0;
         }
     }
 }
 
-void put_object(int (*map)[WINDOW_SIZE], Object obj) {
-
+void put_object(Object obj) {
+    if (obj.type == POINT && SplinePoints.num < MAX_POINTS) {
+        SplinePoints.xy[SplinePoints.num][0] = obj.x;
+        SplinePoints.xy[SplinePoints.num][1] = obj.y;
+    }
 }
 
 void calc_draw_points() {
-    int x_begin = (WINDOW_SIZE - ACTIVE_SIZE) / 2;
-    int y_begin = (WINDOW_SIZE - ACTIVE_SIZE) / 2;
-    int x_end = WINDOW_SIZE - (WINDOW_SIZE - ACTIVE_SIZE) / 2;
-    int y_end = WINDOW_SIZE - (WINDOW_SIZE - ACTIVE_SIZE) / 2;
+    spline_points_sort(&SplinePoints);
 
-    SplineDrawPoints[0][0] = x_begin;
-    SplineDrawPoints[0][1] = y_begin;
-    SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP][0] = x_end;
-    SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP][0] = y_end;
+    matrix coef = mat_new(4 * (SplinePoints.num - 1), 1);
 
-    int x = x_begin;
-    int y;
+    spline(SplinePoints, &coef);
 
-    for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP; i++) {
+    for (int i = 0; i < SplinePoints.num - 1; i++) {
+        // 3次方程式係数
+        PathCoef.base[i][0] = coef.main[i * 4][0];
+        PathCoef.base[i][1] = coef.main[i * 4 + 1][0];
+        PathCoef.base[i][2] = coef.main[i * 4 + 2][0];
+        PathCoef.base[i][3] = coef.main[i * 4 + 3][0];
+        // 微分値の係数
+        PathCoef.diff[i][0] = coef.main[i * 4][0] * 3;
+        PathCoef.diff[i][1] = coef.main[i * 4 + 1][0] * 2;
+        PathCoef.diff[i][2] = coef.main[i * 4 + 2][0];
+    }
+
+    int x = SplinePoints.xy[0][0];
+
+    for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP + 1; i++) {
+        // x
+        SplineDrawPoints[i][0] = x;
+        // y
+        SplineDrawPoints[i][1] = (int) ((double) x * (double) x * (double) x * PathCoef.base[i][0] +
+                                        (double) x * (double) x * PathCoef.base[i][1] +
+                                        (double) x * PathCoef.base[i][2] + PathCoef.base[i][0]);
+        // y'
+        SplineDrawPoints[i][2] = (int) ((double) x * (double) x * PathCoef.diff[i][0] +
+                                        (double) x * PathCoef.diff[i][1] + PathCoef.diff[i][2]);
+        x += SPLINE_STEP;
     }
 }

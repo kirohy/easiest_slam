@@ -5,6 +5,8 @@
 #ifndef FINAL_GLOBAL_PARAMETERS_H
 #define FINAL_GLOBAL_PARAMETERS_H
 
+#include "spline.h"
+
 #define WINDOW_SIZE 640
 #define ACTIVE_SIZE 500
 #define SPLINE_STEP 4
@@ -12,9 +14,10 @@
 #define MAX_POINTS 5
 #define MAX_OBJECT 5
 
+// 左から順に方程式の係数
 typedef struct {
-    double base[MAX_POINTS][4];
-    double diff[MAX_POINTS][3];
+    double base[MAX_POINTS - 1][4];
+    double diff[MAX_POINTS - 1][3];
 } PathCoefficients;
 
 enum ObjectType {
@@ -39,7 +42,8 @@ typedef struct {
 
 extern int MapState[WINDOW_SIZE][WINDOW_SIZE];
 
-extern int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][2];
+// [n][0] = x, [n][1] = y, [n][2] = y'
+extern int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][3];
 
 extern int ObjectNum;
 
@@ -50,5 +54,7 @@ extern Object CurrentObj;
 extern Object ObjectList[MAX_OBJECT];
 
 extern Mode CurrentMode;
+
+extern SplineBasePoints SplinePoints;
 
 #endif //FINAL_GLOBAL_PARAMETERS_H

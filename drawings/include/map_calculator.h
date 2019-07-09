@@ -7,10 +7,12 @@
 
 #include "global_parameters.h"
 
-void init_map(int map[WINDOW_SIZE][WINDOW_SIZE]);
+// MapStateを初期化
+void init_map();
 
+// SplineDrawPointsに点情報を充填
 void calc_draw_points();
 
-void put_object(int map[WINDOW_SIZE][WINDOW_SIZE], Object obj);
+void put_object(Object obj);
 
 #endif //FINAL_MAP_CALCULATOR_H

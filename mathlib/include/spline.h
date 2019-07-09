@@ -5,12 +5,13 @@
 
 #define MAX_POINTS 5
 
+// matrix[n][0] = x, matrix[n][1] = y
 typedef struct {
     int num;
-    matrix xy;
+    int xy[MAX_POINTS][2];
 } SplineBasePoints;
 
-int spline_points_new(SplineBasePoints *Points, int num, matrix base);
+void spline_points_sort(SplineBasePoints *Points);
 
 int spline(SplineBasePoints Points, matrix *answer);
 
