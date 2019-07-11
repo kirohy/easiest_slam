@@ -117,10 +117,6 @@ int spline(SplineBasePoints Points, matrix *answer) {
             B.main[i][0] = 0.0;
         }
 
-        // mat_print(&A);
-        // mat_print(&B);
-        // mat_print(&Points.xy);
-
         mat_solve(answer, A, B);
 
         mat_free(&A);

@@ -4,6 +4,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <math.h>
 #include "gtk_drawings.h"
 #include "global_parameters.h"
 #include "map_calculator.h"
@@ -43,7 +44,20 @@ static gboolean cb_get_spline_points(GtkWidget *widget, GdkEventButton *event, g
     return TRUE;
 }
 
-static void cb_drawing_spline(cairo_t *cr) {
+static void draw_spline_points(cairo_t *cr) {
+    double point_size = 5.0;
+    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+    cairo_set_line_width(cr, 1.0);
+    for (int i = 0; i < SplinePoints.num; i++) {
+        cairo_rectangle(cr, SplinePoints.xy[i][0] + ActiveOffset - point_size / 2.0,
+                        WINDOW_SIZE - ActiveOffset - point_size / 2.0 - SplinePoints.xy[i][1], point_size,
+                        point_size);
+        cairo_stroke_preserve(cr);
+        cairo_fill(cr);
+    }
+}
+
+static void draw_spline_curve(cairo_t *cr) {
     if (SplinePoints.num >= 3) {
         calc_draw_points();
         cairo_set_line_width(cr, 3);
@@ -61,6 +75,21 @@ static void cb_drawing_spline(cairo_t *cr) {
     }
 }
 
+static void draw_machine_vector(cairo_t *cr, int current_point) {
+    cairo_translate(cr, (double) (SplineDrawPoints[current_point][0] + ActiveOffset),
+                    (double) (WINDOW_SIZE - ActiveOffset - SplineDrawPoints[current_point][1]));
+    cairo_rotate(cr, -atan(SplineDiff[current_point]));
+
+    cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+    cairo_set_line_width(cr, 8.0);
+    cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
+    cairo_move_to(cr, 0.0, 0.0);
+    cairo_line_to(cr, 20.0, 0.0);
+    cairo_stroke(cr);
+
+    cairo_identity_matrix(cr);
+}
+
 static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) {
     // const cairo_rectangle_int_t rec = {30, 30, 640, 640};
     // cairo_region_t *reg = cairo_region_create_rectangle(&rec);
@@ -75,38 +104,29 @@ static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) 
 
     cr = gdk_drawing_context_get_cairo_context(context);
 
-    int offset = 30;
-    int max = MAP_SIZE;
-
+    // MAPのベース
     {
         double wall = 20.0; // この半分が外枠の太さ
         cairo_set_line_width(cr, wall);
         cairo_set_source_rgb(cr, 0.7, 0.64, 0.38);
 
-        cairo_rectangle(cr, offset, offset, max, max);
+        cairo_rectangle(cr, BasicOffset, BasicOffset, MAP_SIZE, MAP_SIZE);
         cairo_stroke_preserve(cr); // 外枠
 
         cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
         cairo_fill(cr);
     }
 
-    // SplinePoints描画
-    {
-        double point_size = 5.0;
-        cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-        cairo_set_line_width(cr, 1.0);
-        for (int i = 0; i < SplinePoints.num; i++) {
-            cairo_rectangle(cr, SplinePoints.xy[i][0] + ActiveOffset - point_size / 2.0,
-                            WINDOW_SIZE - ActiveOffset - point_size / 2.0 - SplinePoints.xy[i][1], point_size,
-                            point_size);
-            cairo_stroke_preserve(cr);
-            cairo_fill(cr);
-        }
+    draw_spline_points(cr);
+
+    draw_spline_curve(cr);
+
+    draw_machine_vector(cr, CurrentPoint);
+
+    if (CurrentMode == RUN && CurrentPoint < ACTIVE_SIZE / SPLINE_STEP) {
+        CurrentPoint += 1;
     }
 
-    cb_drawing_spline(cr);
-
-    // cairo_destroy(cr);
     gdk_window_end_draw_frame(window, context);
     return FALSE;
 }
@@ -125,19 +145,14 @@ static gboolean cb_drawing_map(GtkWidget *widget, cairo_t *cr, gpointer data) {
 
     cr = gdk_drawing_context_get_cairo_context(context);
 
-    int offset = 30;
-    int max = 640;
-
+    // MAPのベース
     {
         double wall = 20.0; // この半分が外枠の太さ
-
-        cairo_rectangle(cr, offset - wall / 2, offset - wall / 2, max + wall, max + wall);
-
+        cairo_rectangle(cr, BasicOffset - wall / 2, BasicOffset - wall / 2, MAP_SIZE + wall, MAP_SIZE + wall);
         cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
         cairo_fill(cr);
     }
 
-    // cairo_destroy(cr);
     gdk_window_end_draw_frame(window, context);
     return FALSE;
 }

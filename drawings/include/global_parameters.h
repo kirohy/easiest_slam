@@ -44,7 +44,9 @@ typedef struct {
 extern int MapState[MAP_SIZE][MAP_SIZE];
 
 // [n][0] = x, [n][1] = y, [n][2] = y'
-extern int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][3];
+extern int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][2];
+
+extern double SplineDiff[ACTIVE_SIZE / SPLINE_STEP + 1];
 
 extern int ObjectNum;
 
@@ -57,5 +59,7 @@ extern Object ObjectList[MAX_OBJECT];
 extern Mode CurrentMode;
 
 extern SplineBasePoints SplinePoints;
+
+extern int CurrentPoint;
 
 #endif //FINAL_GLOBAL_PARAMETERS_H

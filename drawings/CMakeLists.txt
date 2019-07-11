@@ -18,4 +18,4 @@ link_directories(${GTK3_LIBRARY_DIRS})
 
 add_definitions(${GTK3_CFLAGS_OTHER})
 
-target_link_libraries(Drawings Mathlib ${GTK3_LIBRARY_DIRS})
+target_link_libraries(Drawings Mathlib ${GTK3_LIBRARY_DIRS} m)
