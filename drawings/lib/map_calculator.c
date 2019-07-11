@@ -6,8 +6,8 @@
 #include "spline.h"
 
 void init_map() {
-    for (int i = 0; i < WINDOW_SIZE; i++) {
-        for (int j = 0; j < WINDOW_SIZE; j++) {
+    for (int i = 0; i < MAP_SIZE; i++) {
+        for (int j = 0; j < MAP_SIZE; j++) {
             MapState[i][j] = 0;
         }
     }
@@ -42,15 +42,27 @@ void calc_draw_points() {
     int x = SplinePoints.xy[0][0];
 
     for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP + 1; i++) {
+        int mode = 0;
         // x
         SplineDrawPoints[i][0] = x;
+
         // y
-        SplineDrawPoints[i][1] = (int) ((double) x * (double) x * (double) x * PathCoef.base[i][0] +
-                                        (double) x * (double) x * PathCoef.base[i][1] +
-                                        (double) x * PathCoef.base[i][2] + PathCoef.base[i][0]);
+        if (x > SplinePoints.xy[1][0]) {
+            mode = 1;
+            if (x > SplinePoints.xy[2][0]) {
+                mode = 2;
+                if (x > SplinePoints.xy[3][0]) {
+                    mode = 3;
+                }
+            }
+        }
+
+        SplineDrawPoints[i][1] = (int) ((double) x * (double) x * (double) x * PathCoef.base[mode][0] +
+                                        (double) x * (double) x * PathCoef.base[mode][1] +
+                                        (double) x * PathCoef.base[mode][2] + PathCoef.base[mode][3]);
         // y'
-        SplineDrawPoints[i][2] = (int) ((double) x * (double) x * PathCoef.diff[i][0] +
-                                        (double) x * PathCoef.diff[i][1] + PathCoef.diff[i][2]);
+        SplineDrawPoints[i][2] = (int) ((double) x * (double) x * PathCoef.diff[mode][0] +
+                                        (double) x * PathCoef.diff[mode][1] + PathCoef.diff[mode][2]);
         x += SPLINE_STEP;
     }
 }

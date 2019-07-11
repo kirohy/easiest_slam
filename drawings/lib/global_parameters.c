@@ -4,7 +4,7 @@
 
 #include "global_parameters.h"
 
-int MapState[WINDOW_SIZE][WINDOW_SIZE];
+int MapState[MAP_SIZE][MAP_SIZE];
 
 int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][3];
 
@@ -18,4 +18,4 @@ Object ObjectList[MAX_OBJECT];
 
 Mode CurrentMode = PUT_CUBE;
 
-SplineBasePoints SplinePoints;
+SplineBasePoints SplinePoints = {2, {{0, 0}, {500, 500}, {0, 0}, {0, 0}, {0, 0}}};

@@ -7,7 +7,8 @@
 
 #include "spline.h"
 
-#define WINDOW_SIZE 640
+#define WINDOW_SIZE 700
+#define MAP_SIZE 640
 #define ACTIVE_SIZE 500
 #define SPLINE_STEP 4
 
@@ -40,7 +41,7 @@ typedef struct {
     int size;
 } Object;
 
-extern int MapState[WINDOW_SIZE][WINDOW_SIZE];
+extern int MapState[MAP_SIZE][MAP_SIZE];
 
 // [n][0] = x, [n][1] = y, [n][2] = y'
 extern int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][3];

@@ -15,7 +15,7 @@ int pow_int(int base, int exp) {
 }
 
 void spline_points_sort(SplineBasePoints *Points) {
-    for (int i = 0; i < Points->num; i++) {
+    for (int i = 0; i < Points->num - 1; i++) {
         for (int j = i + 1; j < Points->num; j++) {
             if (Points->xy[i][0] > Points->xy[j][0]) {
                 int tmp0 = Points->xy[i][0];
@@ -47,8 +47,12 @@ int spline(SplineBasePoints Points, matrix *answer) {
             A.main[2 * i + 1][i * 4 + 2] = (double) Points.xy[i + 1][0];
             A.main[2 * i + 1][i * 4 + 3] = 1.0;
             for (int j = (i + 1) * 4; j < A.col; j++) {
-                A.main[i][j] = 0.0;
-                A.main[i + 1][j] = 0.0;
+                A.main[2 * i][j] = 0.0;
+                A.main[2 * i + 1][j] = 0.0;
+            }
+            for (int j = 0; j < i * 4; j++) {
+                A.main[2 * i][j] = 0.0;
+                A.main[2 * i + 1][j] = 0.0;
             }
         }
 
@@ -63,6 +67,12 @@ int spline(SplineBasePoints Points, matrix *answer) {
             A.main[base_row][i * 4 + 5] = -2.0 * (double) Points.xy[i + 1][0];
             A.main[base_row][i * 4 + 6] = -1.0;
             A.main[base_row][i * 4 + 7] = 0.0;
+            for (int j = 0; j < i * 4; j++) {
+                A.main[base_row][j] = 0.0;
+            }
+            for (int j = i * 4 + 8; j < A.col; j++) {
+                A.main[base_row][j] = 0.0;
+            }
         }
 
         // 2次微分連続
@@ -76,6 +86,12 @@ int spline(SplineBasePoints Points, matrix *answer) {
             A.main[base_row][i * 4 + 5] = -2.0;
             A.main[base_row][i * 4 + 6] = 0.0;
             A.main[base_row][i * 4 + 7] = 0.0;
+            for (int j = 0; j < i * 4; j++) {
+                A.main[base_row][j] = 0.0;
+            }
+            for (int j = i * 4 + 8; j < A.col; j++) {
+                A.main[base_row][j] = 0.0;
+            }
         }
 
         // 端点の2次微分0
@@ -88,13 +104,14 @@ int spline(SplineBasePoints Points, matrix *answer) {
         A.main[A.row - 1][A.col - 3] = 2.0;
         A.main[A.row - 1][A.col - 2] = 0.0;
         A.main[A.row - 1][A.col - 1] = 0.0;
+        for (int i = 0; i < A.col - 4; i++) {
+            A.main[A.row - 1][i] = 0.0;
+        }
 
         // B
         for (int i = 0; i < Points.num - 1; i++) {
-            B.main[i][0] = (double) Points.xy[i][1];
-        }
-        for (int i = 0; i < Points.num - 1; i++) {
-            B.main[Points.num - 1 + i][0] = (double) Points.xy[i + 1][1];
+            B.main[i * 2][0] = (double) Points.xy[i][1];
+            B.main[i * 2 + 1][0] = (double) Points.xy[i + 1][1];
         }
         for (int i = (Points.num - 1) * 2; i < B.row; i++) {
             B.main[i][0] = 0.0;

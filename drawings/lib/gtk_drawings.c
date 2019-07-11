@@ -6,6 +6,10 @@
 #include <gdk/gdk.h>
 #include "gtk_drawings.h"
 #include "global_parameters.h"
+#include "map_calculator.h"
+
+int ActiveOffset = (WINDOW_SIZE - ACTIVE_SIZE) / 2;
+int BasicOffset = (WINDOW_SIZE - MAP_SIZE) / 2;
 
 static void cb_quit_clicked(GtkWidget *button, gpointer data) {
     gtk_main_quit();
@@ -27,6 +31,36 @@ static void cb_run_clicked(GtkWidget *button, gpointer data) {
     CurrentMode = RUN;
 }
 
+static gboolean cb_get_spline_points(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    if (SplinePoints.num < MAX_POINTS && event->button == 1 && event->x > ActiveOffset &&
+        event->x < WINDOW_SIZE - ActiveOffset && event->y > ActiveOffset &&
+        event->y < WINDOW_SIZE - ActiveOffset && CurrentMode == POINT) {
+        SplinePoints.num += 1;
+        SplinePoints.xy[SplinePoints.num - 1][0] = (int) event->x - ActiveOffset;
+        SplinePoints.xy[SplinePoints.num - 1][1] = WINDOW_SIZE - ActiveOffset - (int) event->y;
+    }
+
+    return TRUE;
+}
+
+static void cb_drawing_spline(cairo_t *cr) {
+    if (SplinePoints.num >= 3) {
+        calc_draw_points();
+        cairo_set_line_width(cr, 3);
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+        cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
+        cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+
+        for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP; i++) {
+            cairo_move_to(cr, (double) SplineDrawPoints[i][0] + (double) ActiveOffset,
+                          WINDOW_SIZE - ActiveOffset - (double) SplineDrawPoints[i][1]);
+            cairo_line_to(cr, (double) SplineDrawPoints[i + 1][0] + ActiveOffset,
+                          WINDOW_SIZE - ActiveOffset - (double) SplineDrawPoints[i + 1][1]);
+            cairo_stroke(cr);
+        }
+    }
+}
+
 static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) {
     // const cairo_rectangle_int_t rec = {30, 30, 640, 640};
     // cairo_region_t *reg = cairo_region_create_rectangle(&rec);
@@ -42,7 +76,7 @@ static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) 
     cr = gdk_drawing_context_get_cairo_context(context);
 
     int offset = 30;
-    int max = WINDOW_SIZE;
+    int max = MAP_SIZE;
 
     {
         double wall = 20.0; // この半分が外枠の太さ
@@ -55,6 +89,22 @@ static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) 
         cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
         cairo_fill(cr);
     }
+
+    // SplinePoints描画
+    {
+        double point_size = 5.0;
+        cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+        cairo_set_line_width(cr, 1.0);
+        for (int i = 0; i < SplinePoints.num; i++) {
+            cairo_rectangle(cr, SplinePoints.xy[i][0] + ActiveOffset - point_size / 2.0,
+                            WINDOW_SIZE - ActiveOffset - point_size / 2.0 - SplinePoints.xy[i][1], point_size,
+                            point_size);
+            cairo_stroke_preserve(cr);
+            cairo_fill(cr);
+        }
+    }
+
+    cb_drawing_spline(cr);
 
     // cairo_destroy(cr);
     gdk_window_end_draw_frame(window, context);
@@ -90,6 +140,16 @@ static gboolean cb_drawing_map(GtkWidget *widget, cairo_t *cr, gpointer data) {
     // cairo_destroy(cr);
     gdk_window_end_draw_frame(window, context);
     return FALSE;
+}
+
+static gboolean timer_loop(GtkWidget *widget) {
+    if (gtk_widget_get_window(widget) == NULL) {
+        return FALSE;
+    }
+
+    gtk_widget_queue_draw(widget);
+
+    return TRUE;
 }
 
 void gtk_window() {
@@ -150,6 +210,11 @@ void gtk_window() {
                 gtk_widget_set_size_request(field, 700, 700);
 
                 g_signal_connect(field, "draw", G_CALLBACK(cb_drawing_field), NULL);
+                g_signal_connect(field, "button_press_event", G_CALLBACK(cb_get_spline_points), NULL);
+                g_timeout_add(50, (GSourceFunc) timer_loop, field);
+                gtk_widget_set_events(field,
+                                      GDK_BUTTON_PRESS_MASK
+                );
 
                 gtk_box_pack_start(GTK_BOX(vbox), label, TRUE, TRUE, 0);
                 gtk_box_pack_start(GTK_BOX(vbox), field, TRUE, TRUE, 0);
