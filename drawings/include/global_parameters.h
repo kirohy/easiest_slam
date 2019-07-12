@@ -11,6 +11,7 @@
 #define MAP_SIZE 640
 #define ACTIVE_SIZE 500
 #define SPLINE_STEP 4
+#define CUBE_SIZE 50
 
 #define MAX_POINTS 5
 #define MAX_OBJECT 5
@@ -41,7 +42,7 @@ typedef struct {
     int size;
 } Object;
 
-extern int MapState[MAP_SIZE][MAP_SIZE];
+extern int MapState[MAP_SIZE + 2][MAP_SIZE + 2];
 
 // [n][0] = x, [n][1] = y, [n][2] = y'
 extern int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][2];

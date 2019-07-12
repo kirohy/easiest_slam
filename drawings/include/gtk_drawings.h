@@ -17,9 +17,13 @@ static void cb_run_clicked(GtkWidget *button, gpointer data);
 
 static gboolean cb_get_spline_points(GtkWidget *widget, GdkEventButton *event, gpointer data);
 
+static gboolean cb_get_object_points(GtkWidget *widget, GdkEventButton *event, gpointer data);
+
 static void draw_spline_points(cairo_t *cr);
 
 static void draw_spline_curve(cairo_t *cr);
+
+static void draw_objects(cairo_t *cr);
 
 static void draw_machine_vector(cairo_t *cr, int current_point);
 

@@ -6,17 +6,29 @@
 #include "spline.h"
 
 void init_map() {
-    for (int i = 0; i < MAP_SIZE; i++) {
-        for (int j = 0; j < MAP_SIZE; j++) {
+    for (int i = 1; i <= MAP_SIZE; i++) {
+        for (int j = 1; j <= MAP_SIZE; j++) {
             MapState[i][j] = 0;
         }
     }
+    for (int i = 0; i < MAP_SIZE + 2; i++) {
+        MapState[0][i] = 1;
+        MapState[MAP_SIZE + 1][i] = 1;
+        MapState[i][0] = 1;
+        MapState[i][MAP_SIZE + 1] = 1;
+    }
+
+    SplineDrawPoints[0][0] = 70;
+    SplineDrawPoints[0][1] = 70;
 }
 
 void put_object(Object obj) {
-    if (obj.type == POINT && SplinePoints.num < MAX_POINTS) {
-        SplinePoints.xy[SplinePoints.num][0] = obj.x;
-        SplinePoints.xy[SplinePoints.num][1] = obj.y;
+    if (obj.type == CUBE && ObjectNum < MAX_OBJECT) {
+        for (int i = obj.x - CUBE_SIZE / 2; i < obj.x + CUBE_SIZE / 2; i++) {
+            for (int j = obj.y - CUBE_SIZE / 2; j < obj.y + CUBE_SIZE / 2; j++) {
+                MapState[i][j] = 1;
+            }
+        }
     }
 }
 

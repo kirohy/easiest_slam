@@ -9,8 +9,9 @@
 #include "global_parameters.h"
 #include "map_calculator.h"
 
-int ActiveOffset = (WINDOW_SIZE - ACTIVE_SIZE) / 2;
-int BasicOffset = (WINDOW_SIZE - MAP_SIZE) / 2;
+const int ActiveOffset = (WINDOW_SIZE - ACTIVE_SIZE) / 2;
+const int BasicOffset = (WINDOW_SIZE - MAP_SIZE) / 2;
+const int CubeOffset = (WINDOW_SIZE - MAP_SIZE + CUBE_SIZE) / 2;
 
 static void cb_quit_clicked(GtkWidget *button, gpointer data) {
     gtk_main_quit();
@@ -18,27 +19,51 @@ static void cb_quit_clicked(GtkWidget *button, gpointer data) {
 
 static void cb_cube_clicked(GtkWidget *button, gpointer data) {
     CurrentMode = PUT_CUBE;
+    CurrentObj.type = CUBE;
+    CurrentObj.size = CUBE_SIZE;
 }
 
 static void cb_cylinder_clicked(GtkWidget *button, gpointer data) {
     CurrentMode = PUT_CYLINDER;
+    CurrentObj.type = CYLINDER;
 }
 
 static void cb_point_clicked(GtkWidget *button, gpointer data) {
     CurrentMode = PUT_POINT;
+    CurrentObj.type = POINT;
 }
 
 static void cb_run_clicked(GtkWidget *button, gpointer data) {
     CurrentMode = RUN;
 }
 
+static gboolean cb_identify(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    if (CurrentMode == PUT_POINT) {
+        cb_get_spline_points(widget, event, data);
+    } else if (CurrentMode == PUT_CUBE) {
+        cb_get_object_points(widget, event, data);
+    }
+}
+
 static gboolean cb_get_spline_points(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     if (SplinePoints.num < MAX_POINTS && event->button == 1 && event->x > ActiveOffset &&
-        event->x < WINDOW_SIZE - ActiveOffset && event->y > ActiveOffset &&
-        event->y < WINDOW_SIZE - ActiveOffset && CurrentMode == POINT) {
+        event->x < WINDOW_SIZE - ActiveOffset && event->y > ActiveOffset && event->y < WINDOW_SIZE - ActiveOffset) {
         SplinePoints.num += 1;
-        SplinePoints.xy[SplinePoints.num - 1][0] = (int) event->x - ActiveOffset;
-        SplinePoints.xy[SplinePoints.num - 1][1] = WINDOW_SIZE - ActiveOffset - (int) event->y;
+        SplinePoints.xy[SplinePoints.num - 1][0] = (int) event->x - BasicOffset;
+        SplinePoints.xy[SplinePoints.num - 1][1] = WINDOW_SIZE - BasicOffset - (int) event->y;
+    }
+
+    return TRUE;
+}
+
+static gboolean cb_get_object_points(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    if (ObjectNum < MAX_OBJECT && event->button == 1 && event->x > CubeOffset &&
+        event->x < WINDOW_SIZE - CubeOffset && event->y > CubeOffset && event->y < WINDOW_SIZE - CubeOffset) {
+        CurrentObj.x = (int) event->x - BasicOffset;
+        CurrentObj.y = WINDOW_SIZE - BasicOffset - (int) event->y;
+        put_object(CurrentObj);
+        ObjectList[ObjectNum] = CurrentObj;
+        ObjectNum += 1;
     }
 
     return TRUE;
@@ -49,8 +74,8 @@ static void draw_spline_points(cairo_t *cr) {
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_set_line_width(cr, 1.0);
     for (int i = 0; i < SplinePoints.num; i++) {
-        cairo_rectangle(cr, SplinePoints.xy[i][0] + ActiveOffset - point_size / 2.0,
-                        WINDOW_SIZE - ActiveOffset - point_size / 2.0 - SplinePoints.xy[i][1], point_size,
+        cairo_rectangle(cr, SplinePoints.xy[i][0] + BasicOffset - point_size / 2.0,
+                        WINDOW_SIZE - BasicOffset - point_size / 2.0 - SplinePoints.xy[i][1], point_size,
                         point_size);
         cairo_stroke_preserve(cr);
         cairo_fill(cr);
@@ -66,18 +91,33 @@ static void draw_spline_curve(cairo_t *cr) {
         cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
 
         for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP; i++) {
-            cairo_move_to(cr, (double) SplineDrawPoints[i][0] + (double) ActiveOffset,
-                          WINDOW_SIZE - ActiveOffset - (double) SplineDrawPoints[i][1]);
-            cairo_line_to(cr, (double) SplineDrawPoints[i + 1][0] + ActiveOffset,
-                          WINDOW_SIZE - ActiveOffset - (double) SplineDrawPoints[i + 1][1]);
+            cairo_move_to(cr, (double) SplineDrawPoints[i][0] + (double) BasicOffset,
+                          WINDOW_SIZE - BasicOffset - (double) SplineDrawPoints[i][1]);
+            cairo_line_to(cr, (double) SplineDrawPoints[i + 1][0] + BasicOffset,
+                          WINDOW_SIZE - BasicOffset - (double) SplineDrawPoints[i + 1][1]);
             cairo_stroke(cr);
         }
     }
 }
 
+static void draw_objects(cairo_t *cr) {
+    if (ObjectNum > 0) {
+        cairo_set_line_width(cr, 3);
+        cairo_set_source_rgb(cr, 0.0, 0.0, 1.0);
+        for (int i = 0; i < ObjectNum; i++) {
+            if (ObjectList[i].type == CUBE) {
+                cairo_rectangle(cr, ObjectList[i].x + BasicOffset - CUBE_SIZE / 2,
+                                WINDOW_SIZE - ObjectList[i].y - BasicOffset - CUBE_SIZE / 2, CUBE_SIZE, CUBE_SIZE);
+                cairo_stroke_preserve(cr);
+                cairo_fill(cr);
+            }
+        }
+    }
+}
+
 static void draw_machine_vector(cairo_t *cr, int current_point) {
-    cairo_translate(cr, (double) (SplineDrawPoints[current_point][0] + ActiveOffset),
-                    (double) (WINDOW_SIZE - ActiveOffset - SplineDrawPoints[current_point][1]));
+    cairo_translate(cr, (double) (SplineDrawPoints[current_point][0] + BasicOffset),
+                    (double) (WINDOW_SIZE - BasicOffset - SplineDrawPoints[current_point][1]));
     cairo_rotate(cr, -atan(SplineDiff[current_point]));
 
     cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
@@ -122,6 +162,8 @@ static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) 
     draw_spline_curve(cr);
 
     draw_machine_vector(cr, CurrentPoint);
+
+    draw_objects(cr);
 
     if (CurrentMode == RUN && CurrentPoint < ACTIVE_SIZE / SPLINE_STEP) {
         CurrentPoint += 1;
@@ -172,6 +214,8 @@ void gtk_window() {
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "EasiestSLAM");
+
+    init_map();
 
     // gtk_widget_set_size_request(window, 300, 200);
     {
@@ -225,7 +269,7 @@ void gtk_window() {
                 gtk_widget_set_size_request(field, 700, 700);
 
                 g_signal_connect(field, "draw", G_CALLBACK(cb_drawing_field), NULL);
-                g_signal_connect(field, "button_press_event", G_CALLBACK(cb_get_spline_points), NULL);
+                g_signal_connect(field, "button_press_event", G_CALLBACK(cb_identify), NULL);
                 g_timeout_add(50, (GSourceFunc) timer_loop, field);
                 gtk_widget_set_events(field,
                                       GDK_BUTTON_PRESS_MASK
