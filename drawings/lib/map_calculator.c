@@ -4,6 +4,7 @@
 
 #include "map_calculator.h"
 #include "spline.h"
+#include <math.h>
 
 void init_map() {
     for (int i = 1; i <= MAP_SIZE; i++) {
@@ -32,7 +33,7 @@ void put_object(Object obj) {
     }
 }
 
-void calc_draw_points() {
+int calc_draw_points() {
     spline_points_sort(&SplinePoints);
 
     matrix coef = mat_new(4 * (SplinePoints.num - 1), 1);
@@ -72,9 +73,100 @@ void calc_draw_points() {
         SplineDrawPoints[i][1] = (int) ((double) x * (double) x * (double) x * PathCoef.base[mode][0] +
                                         (double) x * (double) x * PathCoef.base[mode][1] +
                                         (double) x * PathCoef.base[mode][2] + PathCoef.base[mode][3]);
+
+        if (SplineDrawPoints[i][1] < 70 || SplineDrawPoints[i][1] > 570) {
+            return 1;
+        }
         // y'
         SplineDiff[i] = (double) x * (double) x * PathCoef.diff[mode][0] +
                         (double) x * PathCoef.diff[mode][1] + PathCoef.diff[mode][2];
         x += SPLINE_STEP;
+    }
+
+    return 0;
+}
+
+// 誤差関数
+int f_epsilon(int x, double y, int x_origin, int y_origin, double tan) {
+    int dx = 1000;
+    int dy = (int) (tan * 1000.0);
+
+    return (int) (2.0 * (dy * (x - x_origin) - dx * (y - y_origin)));
+}
+
+// tanの加法定理
+static double calc_tan(double tan_default, double theta) {
+    return (tan_default + tan(theta)) / (1 - tan_default * tan(theta));
+}
+
+void init_observe() {
+    for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP + 1; i++) {
+        for (int j = 0; j < OBSERVE; j++) {
+            ObservedPoint[i][j].x = 0;
+            ObservedPoint[i][j].y = 0;
+        }
+    }
+}
+
+// レーザーの壁検知(i番目の描画点)
+void find_wall(int num) {
+    int x_origin = SplineDrawPoints[num][0];
+    int y_origin = SplineDrawPoints[num][1];
+
+    // xを足していくか引いていくか。前者が1,後者が-1
+    int mode[OBSERVE];
+
+    // 傾きを格納
+    double laser_tan[OBSERVE];
+    double offset = M_PI / (double) (OBSERVE + 1);
+    for (int i = 0; i < OBSERVE; i++) {
+        laser_tan[i] = calc_tan(SplineDiff[num], offset * (double) (i - (OBSERVE - 1) / 2));
+
+        double theta_tmp = atan(SplineDiff[num]) + offset * (double) (i - (OBSERVE - 1) / 2);
+        if (theta_tmp > -M_PI / 2.0 && theta_tmp < M_PI / 2.0) {
+            mode[i] = 1;
+        } else {
+            mode[i] = -1;
+        }
+    }
+
+    int x;
+    int y;
+    double tmp_y;
+
+    int count = 0;
+
+    for (int i = 0; i < OBSERVE; i++) {
+        x = x_origin;
+        tmp_y = (double) y_origin;
+        count = 0;
+        while (count < MAP_SIZE) {
+            if (mode[i] == 1) {
+                tmp_y += laser_tan[i];
+                x += 1;
+            } else {
+                tmp_y -= laser_tan[i];
+                x -= 1;
+            }
+
+            y = (int) tmp_y;
+
+            if (y > MAP_SIZE) {
+                ObservedPoint[num][i].x = x;
+                ObservedPoint[num][i].y = MAP_SIZE + 1;
+                break;
+            } else if (y < 0) {
+                ObservedPoint[num][i].x = x;
+                ObservedPoint[num][i].y = 0;
+                break;
+            }
+
+            if (MapState[x][y] == 1) {
+                ObservedPoint[num][i].x = x;
+                ObservedPoint[num][i].y = y;
+                break;
+            }
+            count += 1;
+        }
     }
 }

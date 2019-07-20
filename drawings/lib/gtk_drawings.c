@@ -48,6 +48,7 @@ static gboolean cb_identify(GtkWidget *widget, GdkEventButton *event, gpointer d
 static gboolean cb_get_spline_points(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     if (SplinePoints.num < MAX_POINTS && event->button == 1 && event->x > ActiveOffset &&
         event->x < WINDOW_SIZE - ActiveOffset && event->y > ActiveOffset && event->y < WINDOW_SIZE - ActiveOffset) {
+        SplinePoints_prev = SplinePoints;
         SplinePoints.num += 1;
         SplinePoints.xy[SplinePoints.num - 1][0] = (int) event->x - BasicOffset;
         SplinePoints.xy[SplinePoints.num - 1][1] = WINDOW_SIZE - BasicOffset - (int) event->y;
@@ -84,18 +85,21 @@ static void draw_spline_points(cairo_t *cr) {
 
 static void draw_spline_curve(cairo_t *cr) {
     if (SplinePoints.num >= 3) {
-        calc_draw_points();
-        cairo_set_line_width(cr, 3);
-        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-        cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
-        cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+        if (calc_draw_points() == 0) {
+            cairo_set_line_width(cr, 3);
+            cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+            cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
+            cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
 
-        for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP; i++) {
-            cairo_move_to(cr, (double) SplineDrawPoints[i][0] + (double) BasicOffset,
-                          WINDOW_SIZE - BasicOffset - (double) SplineDrawPoints[i][1]);
-            cairo_line_to(cr, (double) SplineDrawPoints[i + 1][0] + BasicOffset,
-                          WINDOW_SIZE - BasicOffset - (double) SplineDrawPoints[i + 1][1]);
-            cairo_stroke(cr);
+            for (int i = 0; i < ACTIVE_SIZE / SPLINE_STEP; i++) {
+                cairo_move_to(cr, (double) SplineDrawPoints[i][0] + (double) BasicOffset,
+                              WINDOW_SIZE - BasicOffset - (double) SplineDrawPoints[i][1]);
+                cairo_line_to(cr, (double) SplineDrawPoints[i + 1][0] + BasicOffset,
+                              WINDOW_SIZE - BasicOffset - (double) SplineDrawPoints[i + 1][1]);
+                cairo_stroke(cr);
+            }
+        } else {
+            SplinePoints = SplinePoints_prev;
         }
     }
 }
@@ -128,6 +132,21 @@ static void draw_machine_vector(cairo_t *cr, int current_point) {
     cairo_stroke(cr);
 
     cairo_identity_matrix(cr);
+}
+
+static void draw_observed_points(cairo_t *cr, int current_point) {
+    find_wall(current_point);
+
+    cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+    cairo_set_line_width(cr, 1);
+    for (int i = 0; i < current_point; i++) {
+        for (int j = 0; j < OBSERVE; j++) {
+            cairo_rectangle(cr, ObservedPoint[i][j].x + BasicOffset,
+                            WINDOW_SIZE - ObservedPoint[i][j].y - BasicOffset, 1, 1);
+            cairo_stroke_preserve(cr);
+            cairo_fill(cr);
+        }
+    }
 }
 
 static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) {
@@ -195,6 +214,10 @@ static gboolean cb_drawing_map(GtkWidget *widget, cairo_t *cr, gpointer data) {
         cairo_fill(cr);
     }
 
+    if (CurrentMode == RUN) {
+        draw_observed_points(cr, CurrentPoint);
+    }
+
     gdk_window_end_draw_frame(window, context);
     return FALSE;
 }
@@ -216,6 +239,7 @@ void gtk_window() {
     gtk_window_set_title(GTK_WINDOW(window), "EasiestSLAM");
 
     init_map();
+    init_observe();
 
     // gtk_widget_set_size_request(window, 300, 200);
     {
@@ -270,7 +294,7 @@ void gtk_window() {
 
                 g_signal_connect(field, "draw", G_CALLBACK(cb_drawing_field), NULL);
                 g_signal_connect(field, "button_press_event", G_CALLBACK(cb_identify), NULL);
-                g_timeout_add(50, (GSourceFunc) timer_loop, field);
+                g_timeout_add(100, (GSourceFunc) timer_loop, field);
                 gtk_widget_set_events(field,
                                       GDK_BUTTON_PRESS_MASK
                 );
@@ -294,14 +318,15 @@ void gtk_window() {
                 map = gtk_drawing_area_new();
                 gtk_widget_set_size_request(map, 700, 700);
 
+                g_signal_connect(map, "draw", G_CALLBACK(cb_drawing_map), NULL);
+                g_timeout_add(100, (GSourceFunc) timer_loop, map);
+
                 gtk_label_set_markup(GTK_LABEL(label), str);
 
                 gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);
 
                 gtk_box_pack_start(GTK_BOX(vbox), label, TRUE, TRUE, 0);
                 gtk_box_pack_start(GTK_BOX(vbox), map, TRUE, TRUE, 0);
-
-                g_signal_connect(map, "draw", G_CALLBACK(cb_drawing_map), NULL);
             }
             gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 5);
         }

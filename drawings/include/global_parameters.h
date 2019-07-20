@@ -16,6 +16,8 @@
 #define MAX_POINTS 5
 #define MAX_OBJECT 5
 
+#define OBSERVE 15
+
 // 左から順に方程式の係数
 typedef struct {
     double base[MAX_POINTS - 1][4];
@@ -42,15 +44,22 @@ typedef struct {
     int size;
 } Object;
 
+typedef struct {
+    int x;
+    int y;
+} ObservedPos;
+
 extern int MapState[MAP_SIZE + 2][MAP_SIZE + 2];
 
-// [n][0] = x, [n][1] = y, [n][2] = y'
+// [n][0] = x, [n][1] = y
 extern int SplineDrawPoints[ACTIVE_SIZE / SPLINE_STEP + 1][2];
 
+// Splineの傾き
 extern double SplineDiff[ACTIVE_SIZE / SPLINE_STEP + 1];
 
 extern int ObjectNum;
 
+// スプラインの方程式の係数
 extern PathCoefficients PathCoef;
 
 extern Object CurrentObj;
@@ -61,6 +70,12 @@ extern Mode CurrentMode;
 
 extern SplineBasePoints SplinePoints;
 
+extern SplineBasePoints SplinePoints_prev;
+
+// 現在のSplineDrawPointsのナンバー
 extern int CurrentPoint;
+
+// 観測点
+extern ObservedPos ObservedPoint[ACTIVE_SIZE / SPLINE_STEP + 1][OBSERVE];
 
 #endif //FINAL_GLOBAL_PARAMETERS_H
