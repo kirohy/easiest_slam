@@ -7,9 +7,9 @@
 
 static void cb_quit_clicked(GtkWidget *button, gpointer data);
 
-static void cb_cube_clicked(GtkWidget *button, gpointer data);
+static void cb_cube_one_clicked(GtkWidget *button, gpointer data);
 
-static void cb_cylinder_clicked(GtkWidget *button, gpointer data);
+static void cb_cube_two_clicked(GtkWidget *button, gpointer data);
 
 static void cb_point_clicked(GtkWidget *button, gpointer data);
 

@@ -13,21 +13,20 @@
 
 const int ActiveOffset = (WINDOW_SIZE - ACTIVE_SIZE) / 2;
 const int BasicOffset = (WINDOW_SIZE - MAP_SIZE) / 2;
-const int CubeOffset = (WINDOW_SIZE - MAP_SIZE + CUBE_SIZE) / 2;
+const int CubeOffset = (WINDOW_SIZE - MAP_SIZE + CUBE_SIZE_TWO) / 2;
 
 static void cb_quit_clicked(GtkWidget *button, gpointer data) {
     gtk_main_quit();
 }
 
-static void cb_cube_clicked(GtkWidget *button, gpointer data) {
-    CurrentMode = PUT_CUBE;
-    CurrentObj.type = CUBE;
-    CurrentObj.size = CUBE_SIZE;
+static void cb_cube_one_clicked(GtkWidget *button, gpointer data) {
+    CurrentMode = PUT_CUBE_ONE;
+    CurrentObj.type = CUBE_ONE;
 }
 
-static void cb_cylinder_clicked(GtkWidget *button, gpointer data) {
-    CurrentMode = PUT_CYLINDER;
-    CurrentObj.type = CYLINDER;
+static void cb_cube_two_clicked(GtkWidget *button, gpointer data) {
+    CurrentMode = PUT_CUBE_TWO;
+    CurrentObj.type = CUBE_TWO;
 }
 
 static void cb_point_clicked(GtkWidget *button, gpointer data) {
@@ -39,10 +38,11 @@ static void cb_run_clicked(GtkWidget *button, gpointer data) {
     CurrentMode = RUN;
 }
 
+// マウスクリックの行き先分岐
 static gboolean cb_identify(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     if (CurrentMode == PUT_POINT) {
         cb_get_spline_points(widget, event, data);
-    } else if (CurrentMode == PUT_CUBE) {
+    } else if (CurrentMode == PUT_CUBE_ONE || CurrentMode == PUT_CUBE_TWO) {
         cb_get_object_points(widget, event, data);
     }
 }
@@ -111,9 +111,23 @@ static void draw_objects(cairo_t *cr) {
         cairo_set_line_width(cr, 3);
         cairo_set_source_rgb(cr, 0.0, 0.0, 1.0);
         for (int i = 0; i < ObjectNum; i++) {
-            if (ObjectList[i].type == CUBE) {
-                cairo_rectangle(cr, ObjectList[i].x + BasicOffset - CUBE_SIZE / 2,
-                                WINDOW_SIZE - ObjectList[i].y - BasicOffset - CUBE_SIZE / 2, CUBE_SIZE, CUBE_SIZE);
+            if (ObjectList[i].type == CUBE_ONE) {
+                cairo_rectangle(cr, ObjectList[i].x + BasicOffset - CUBE_SIZE_ONE / 2,
+                                WINDOW_SIZE - ObjectList[i].y - BasicOffset - CUBE_SIZE_ONE / 2, CUBE_SIZE_ONE,
+                                CUBE_SIZE_ONE);
+                cairo_stroke_preserve(cr);
+                cairo_fill(cr);
+            } else if (ObjectList[i].type == CUBE_TWO) {
+                cairo_move_to(cr, ObjectList[i].x + BasicOffset - (CUBE_SIZE_TWO - 1) / 2,
+                              WINDOW_SIZE - ObjectList[i].y - BasicOffset);
+                cairo_line_to(cr, ObjectList[i].x + BasicOffset,
+                              WINDOW_SIZE - ObjectList[i].y - BasicOffset - (CUBE_SIZE_TWO - 1) / 2);
+                cairo_line_to(cr, ObjectList[i].x + BasicOffset + (CUBE_SIZE_TWO - 1) / 2,
+                              WINDOW_SIZE - ObjectList[i].y - BasicOffset);
+                cairo_line_to(cr, ObjectList[i].x + BasicOffset,
+                              WINDOW_SIZE - ObjectList[i].y - BasicOffset + (CUBE_SIZE_TWO - 1) / 2);
+                cairo_line_to(cr, ObjectList[i].x + BasicOffset - (CUBE_SIZE_TWO - 1) / 2,
+                              WINDOW_SIZE - ObjectList[i].y - BasicOffset);
                 cairo_stroke_preserve(cr);
                 cairo_fill(cr);
             }
@@ -132,6 +146,14 @@ static void draw_machine_vector(cairo_t *cr, int current_point) {
     cairo_move_to(cr, 0.0, 0.0);
     cairo_line_to(cr, 20.0, 0.0);
     cairo_stroke(cr);
+
+    cairo_set_line_width(cr, 1.0);
+    cairo_move_to(cr, 32.5, 0.0);
+    cairo_line_to(cr, 20.0, 7.5);
+    cairo_line_to(cr, 20.0, -7.5);
+    cairo_line_to(cr, 32.5, 0.0);
+    cairo_stroke_preserve(cr);
+    cairo_fill(cr);
 
     cairo_identity_matrix(cr);
 }
@@ -248,26 +270,26 @@ void gtk_window() {
             GtkWidget *vbox;
             vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
             {
-                GtkWidget *cube;
-                GtkWidget *cylinder;
+                GtkWidget *cube_one;
+                GtkWidget *cube_two;
                 GtkWidget *point;
                 GtkWidget *run;
                 GtkWidget *quit;
 
-                cube = gtk_button_new_with_label("Put Cubes");
-                cylinder = gtk_button_new_with_label("Put Cylinders");
+                cube_one = gtk_button_new_with_label("Put Cube1");
+                cube_two = gtk_button_new_with_label("Put Cube2");
                 point = gtk_button_new_with_label("Set Points");
                 run = gtk_button_new_with_label("Run");
                 quit = gtk_button_new_with_label("Quit");
 
-                gtk_box_pack_start(GTK_BOX(vbox), cube, TRUE, TRUE, 0);
-                gtk_box_pack_start(GTK_BOX(vbox), cylinder, TRUE, TRUE, 0);
+                gtk_box_pack_start(GTK_BOX(vbox), cube_one, TRUE, TRUE, 0);
+                gtk_box_pack_start(GTK_BOX(vbox), cube_two, TRUE, TRUE, 0);
                 gtk_box_pack_start(GTK_BOX(vbox), point, TRUE, TRUE, 0);
                 gtk_box_pack_start(GTK_BOX(vbox), run, TRUE, TRUE, 0);
                 gtk_box_pack_start(GTK_BOX(vbox), quit, TRUE, TRUE, 0);
 
-                g_signal_connect(cube, "clicked", G_CALLBACK(cb_cube_clicked), NULL);
-                g_signal_connect(cylinder, "clicked", G_CALLBACK(cb_cylinder_clicked), NULL);
+                g_signal_connect(cube_one, "clicked", G_CALLBACK(cb_cube_one_clicked), NULL);
+                g_signal_connect(cube_two, "clicked", G_CALLBACK(cb_cube_two_clicked), NULL);
                 g_signal_connect(point, "clicked", G_CALLBACK(cb_point_clicked), NULL);
                 g_signal_connect(run, "clicked", G_CALLBACK(cb_run_clicked), NULL);
                 g_signal_connect(quit, "clicked", G_CALLBACK(cb_quit_clicked), NULL);
@@ -288,7 +310,7 @@ void gtk_window() {
                 gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);
 
                 field = gtk_drawing_area_new();
-                gtk_widget_set_size_request(field, 700, 700);
+                gtk_widget_set_size_request(field, WINDOW_SIZE, WINDOW_SIZE);
 
                 g_signal_connect(field, "draw", G_CALLBACK(cb_drawing_field), NULL);
                 g_signal_connect(field, "button_press_event", G_CALLBACK(cb_identify), NULL);
@@ -314,7 +336,7 @@ void gtk_window() {
 
                 label = gtk_label_new(NULL);
                 map = gtk_drawing_area_new();
-                gtk_widget_set_size_request(map, 700, 700);
+                gtk_widget_set_size_request(map, WINDOW_SIZE, WINDOW_SIZE);
 
                 g_signal_connect(map, "draw", G_CALLBACK(cb_drawing_map), NULL);
                 g_timeout_add(time_interval, (GSourceFunc) timer_loop, map);

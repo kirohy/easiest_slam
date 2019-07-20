@@ -7,11 +7,12 @@
 
 #include "spline.h"
 
-#define WINDOW_SIZE 700
+#define WINDOW_SIZE 650
 #define MAP_SIZE 640
 #define ACTIVE_SIZE 500
 #define SPLINE_STEP 4
-#define CUBE_SIZE 50
+#define CUBE_SIZE_ONE 50
+#define CUBE_SIZE_TWO 75
 
 #define MAX_POINTS 5
 #define MAX_OBJECT 5
@@ -25,14 +26,14 @@ typedef struct {
 } PathCoefficients;
 
 enum ObjectType {
-    CUBE,
-    CYLINDER,
+    CUBE_ONE,
+    CUBE_TWO,
     POINT,
 };
 
 typedef enum {
-    PUT_CUBE,
-    PUT_CYLINDER,
+    PUT_CUBE_ONE,
+    PUT_CUBE_TWO,
     PUT_POINT,
     RUN,
 } Mode;
@@ -41,7 +42,6 @@ typedef struct {
     enum ObjectType type;
     int x;
     int y;
-    int size;
 } Object;
 
 typedef struct {

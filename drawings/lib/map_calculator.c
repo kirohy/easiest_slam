@@ -25,10 +25,23 @@ void init_map() {
 }
 
 void put_object(Object obj) {
-    if (obj.type == CUBE && ObjectNum < MAX_OBJECT) {
-        for (int i = obj.x - CUBE_SIZE / 2; i < obj.x + CUBE_SIZE / 2; i++) {
-            for (int j = obj.y - CUBE_SIZE / 2; j < obj.y + CUBE_SIZE / 2; j++) {
+    if (obj.type == CUBE_ONE && ObjectNum < MAX_OBJECT) {
+        for (int i = obj.x - CUBE_SIZE_ONE / 2; i < obj.x + CUBE_SIZE_ONE / 2; i++) {
+            for (int j = obj.y - CUBE_SIZE_ONE / 2; j < obj.y + CUBE_SIZE_ONE / 2; j++) {
                 MapState[i][j] = 1;
+            }
+        }
+    } else if (obj.type == CUBE_TWO && ObjectNum < MAX_OBJECT) {
+        for (int i = obj.y - (CUBE_SIZE_TWO - 1) / 2; i < obj.y; i++) {
+            for (int j = obj.x - (i - obj.y + (CUBE_SIZE_TWO - 1) / 2);
+                 j <= obj.x + (i - obj.y + (CUBE_SIZE_TWO - 1) / 2); j++) {
+                MapState[j][i] = 1;
+            }
+        }
+        for (int i = obj.y; i <= obj.y + (CUBE_SIZE_TWO - 1) / 2; i++) {
+            for (int j = obj.x - (obj.y + (CUBE_SIZE_TWO - 1) / 2 - i);
+                 j <= obj.x + (obj.y + (CUBE_SIZE_TWO - 1) / 2 - i); j++) {
+                MapState[j][i] = 1;
             }
         }
     }
@@ -155,8 +168,21 @@ void find_wall(int num) {
             }
 
             if (MapState[x][y] == 1) {
-                ObservedPoint[num][i].x = x;
-                ObservedPoint[num][i].y = y;
+                if (MapState[x - 1][y] == 1 && MapState[x + 1][y] == 1) {
+                    int tmp = y;
+                    while (MapState[x][tmp] == 1) {
+                        if (mode[i] * laser_tan[i] > 0) {
+                            tmp -= 1;
+                        } else {
+                            tmp += 1;
+                        }
+                    }
+                    ObservedPoint[num][i].x = x;
+                    ObservedPoint[num][i].y = tmp;
+                } else {
+                    ObservedPoint[num][i].x = x;
+                    ObservedPoint[num][i].y = y;
+                }
                 break;
             }
             count += 1;

@@ -18,7 +18,7 @@ static void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // 外枠
-    GLdouble wall_vertex[][3] = {
+    GLdouble vertex_wall[][3] = {
             {0.0,   0.0,   0.0},
             {640.0, 0.0,   0.0},
             {640.0, 640.0, 0.0},
@@ -47,13 +47,14 @@ static void display(void) {
             {0.0,  0.0,  1.0}
     };
 
+
     glPushMatrix();
     glColor3d(0.7, 0.64, 0.38);
     glBegin(GL_QUADS);
     for (int i = 0; i < 4; i++) {
         glNormal3d(normal[i][0], normal[i][1], normal[i][2]);
         for (int j = 0; j < 4; j++) {
-            glVertex3dv(wall_vertex[face[i][j]]);
+            glVertex3dv(vertex_wall[face[i][j]]);
         }
     }
     glEnd();
@@ -65,41 +66,78 @@ static void display(void) {
     glBegin(GL_QUADS);
     glNormal3d(0.0, 0.0, 1.0);
     for (int j = 0; j < 4; j++) {
-        glVertex3dv(wall_vertex[face[4][j]]);
+        glVertex3dv(vertex_wall[face[4][j]]);
     }
     glEnd();
     glPopMatrix();
 
 
     // Objects
-    GLdouble cube_vertex[][3] = {
+    GLdouble vertex_cube_one[][3] = {
             {0.0,       0.0,       0.0},
-            {CUBE_SIZE, 0.0,       0.0},
-            {CUBE_SIZE, CUBE_SIZE, 0.0},
-            {0.0,       CUBE_SIZE, 0.0},
-            {0.0,       0.0,       CUBE_SIZE},
-            {CUBE_SIZE, 0.0,       CUBE_SIZE},
-            {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE},
-            {0.0,       CUBE_SIZE, CUBE_SIZE}
+            {CUBE_SIZE_ONE, 0.0,       0.0},
+            {CUBE_SIZE_ONE, CUBE_SIZE_ONE, 0.0},
+            {0.0,       CUBE_SIZE_ONE, 0.0},
+            {0.0,       0.0,       CUBE_SIZE_ONE},
+            {CUBE_SIZE_ONE, 0.0,       CUBE_SIZE_ONE},
+            {CUBE_SIZE_ONE, CUBE_SIZE_ONE, CUBE_SIZE_ONE},
+            {0.0,       CUBE_SIZE_ONE, CUBE_SIZE_ONE}
+    };
+
+    GLdouble vertex_cube_two[][3] = {
+            {(CUBE_SIZE_TWO - 1) / 2,  0.0,                      0.0},
+            {0.0,                      (CUBE_SIZE_TWO - 1) / 2,  0.0},
+            {-(CUBE_SIZE_TWO - 1) / 2, 0.0,                      0.0},
+            {0.0,                      -(CUBE_SIZE_TWO - 1) / 2, 0.0},
+            {(CUBE_SIZE_TWO - 1) / 2,  0.0,                      CUBE_SIZE_ONE},
+            {0.0,                      (CUBE_SIZE_TWO - 1) / 2,  CUBE_SIZE_ONE},
+            {-(CUBE_SIZE_TWO - 1) / 2, 0.0,                      CUBE_SIZE_ONE},
+            {0.0,                      -(CUBE_SIZE_TWO - 1) / 2, CUBE_SIZE_ONE}
+    };
+
+    GLdouble normal_cube_two[][3] = {
+            {-1.0, 1.0,  0.0},
+            {1.0,  -1.0, 0.0},
+            {1.0,  1.0,  0.0},
+            {-1.0, -1.0, 0.0},
+            {0.0,  0.0,  -1.0},
+            {0.0,  0.0,  1.0}
     };
 
     glColor3d(0.0, 0.0, 1.0);
 
     for (int i = 0; i < ObjectNum; i++) {
-        glTranslatef(ObjectList[i].x - CUBE_SIZE / 2, ObjectList[i].y - CUBE_SIZE / 2, 0.0);
+        if (ObjectList[i].type == CUBE_ONE) {
+            glTranslatef(ObjectList[i].x - CUBE_SIZE_ONE / 2, ObjectList[i].y - CUBE_SIZE_ONE / 2, 0.0);
 
-        glPushMatrix();
-        glBegin(GL_QUADS);
-        for (int j = 0; j < 6; j++) {
-            glNormal3d(normal[j][0], normal[j][1], normal[j][2]);
-            for (int k = 0; k < 4; k++) {
-                glVertex3dv(cube_vertex[face[j][k]]);
+            glPushMatrix();
+            glBegin(GL_QUADS);
+            for (int j = 0; j < 6; j++) {
+                glNormal3d(normal[j][0], normal[j][1], normal[j][2]);
+                for (int k = 0; k < 4; k++) {
+                    glVertex3dv(vertex_cube_one[face[j][k]]);
+                }
             }
-        }
-        glEnd();
-        glPopMatrix();
+            glEnd();
+            glPopMatrix();
 
-        glTranslatef(-ObjectList[i].x + CUBE_SIZE / 2, -ObjectList[i].y + CUBE_SIZE / 2, 0.0);
+            glTranslatef(-ObjectList[i].x + CUBE_SIZE_ONE / 2, -ObjectList[i].y + CUBE_SIZE_ONE / 2, 0.0);
+        } else if (ObjectList[i].type == CUBE_TWO) {
+            glTranslatef(ObjectList[i].x, ObjectList[i].y, 0.0);
+
+            glPushMatrix();
+            glBegin(GL_QUADS);
+            for (int j = 0; j < 6; j++) {
+                glNormal3d(normal_cube_two[j][0], normal_cube_two[j][1], normal_cube_two[j][2]);
+                for (int k = 0; k < 4; k++) {
+                    glVertex3dv(vertex_cube_two[face[j][k]]);
+                }
+            }
+            glEnd();
+            glPopMatrix();
+
+            glTranslatef(-ObjectList[i].x, -ObjectList[i].y, 0.0);
+        }
     }
 
     // 視点移動
