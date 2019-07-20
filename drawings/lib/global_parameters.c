@@ -18,7 +18,7 @@ Object CurrentObj;
 
 Object ObjectList[MAX_OBJECT];
 
-Mode CurrentMode = PUT_CUBE;
+Mode CurrentMode = PUT_POINT;
 
 SplineBasePoints SplinePoints = {2, {{70, 70}, {570, 570}, {0, 0}, {0, 0}, {0, 0}}};
 
@@ -27,3 +27,7 @@ SplineBasePoints SplinePoints_prev = {2, {{70, 70}, {570, 570}, {0, 0}, {0, 0}, 
 int CurrentPoint = 0;
 
 ObservedPos ObservedPoint[ACTIVE_SIZE / SPLINE_STEP + 1][OBSERVE];
+
+int time_animation = 0;
+
+int time_interval = 100;

@@ -16,4 +16,6 @@ link_directories(${GTK3_LIBRARY_DIRS})
 
 add_definitions(${GTK3_CFLAGS_OTHER})
 
-target_link_libraries(final Mathlib Drawings ${GTK3_LIBRARIES})
+find_package(Threads)
+
+target_link_libraries(final Mathlib Drawings ${GTK3_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

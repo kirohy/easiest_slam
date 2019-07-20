@@ -15,6 +15,8 @@ static void cb_point_clicked(GtkWidget *button, gpointer data);
 
 static void cb_run_clicked(GtkWidget *button, gpointer data);
 
+static gboolean cb_identify(GtkWidget *widget, GdkEventButton *event, gpointer data);
+
 static gboolean cb_get_spline_points(GtkWidget *widget, GdkEventButton *event, gpointer data);
 
 static gboolean cb_get_object_points(GtkWidget *widget, GdkEventButton *event, gpointer data);

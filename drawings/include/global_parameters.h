@@ -78,4 +78,10 @@ extern int CurrentPoint;
 // 観測点
 extern ObservedPos ObservedPoint[ACTIVE_SIZE / SPLINE_STEP + 1][OBSERVE];
 
+// アニメーション現在時間
+extern int time_animation;
+
+// 実行周期
+extern int time_interval;
+
 #endif //FINAL_GLOBAL_PARAMETERS_H

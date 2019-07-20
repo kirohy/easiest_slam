@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
-#include "matrix.h"
-#include "spline.h"
+#include <pthread.h>
+
+#include "glut_drawings.h"
 #include "gtk_drawings.h"
 
 
 int main(int argc, char **argv) {
-    gtk_init(&argc, &argv);
+    pthread_t thread_gtk, thread_glut;
+    pthread_create(&thread_gtk, NULL, (void *) gtk_window, NULL);
+    pthread_create(&thread_glut, NULL, (void *) glut_window, NULL);
 
-    gtk_window();
-
-    gtk_main();
+    pthread_join(thread_glut, NULL);
+    pthread_join(thread_gtk, NULL);
 
     return 0;
 }

@@ -2,9 +2,10 @@
 // Created by kirohy on 19/07/07.
 //
 
+#include <math.h>
+
 #include "map_calculator.h"
 #include "spline.h"
-#include <math.h>
 
 void init_map() {
     for (int i = 1; i <= MAP_SIZE; i++) {
@@ -74,7 +75,7 @@ int calc_draw_points() {
                                         (double) x * (double) x * PathCoef.base[mode][1] +
                                         (double) x * PathCoef.base[mode][2] + PathCoef.base[mode][3]);
 
-        if (SplineDrawPoints[i][1] < 70 || SplineDrawPoints[i][1] > 570) {
+        if (SplineDrawPoints[i][1] < 20 || SplineDrawPoints[i][1] > 620) {
             return 1;
         }
         // y'
@@ -84,14 +85,6 @@ int calc_draw_points() {
     }
 
     return 0;
-}
-
-// 誤差関数
-int f_epsilon(int x, double y, int x_origin, int y_origin, double tan) {
-    int dx = 1000;
-    int dy = (int) (tan * 1000.0);
-
-    return (int) (2.0 * (dy * (x - x_origin) - dx * (y - y_origin)));
 }
 
 // tanの加法定理

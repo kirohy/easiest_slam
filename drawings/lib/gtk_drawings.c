@@ -5,8 +5,10 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <math.h>
-#include "gtk_drawings.h"
+
 #include "global_parameters.h"
+#include "glut_drawings.h"
+#include "gtk_drawings.h"
 #include "map_calculator.h"
 
 const int ActiveOffset = (WINDOW_SIZE - ACTIVE_SIZE) / 2;
@@ -150,9 +152,6 @@ static void draw_observed_points(cairo_t *cr, int current_point) {
 }
 
 static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) {
-    // const cairo_rectangle_int_t rec = {30, 30, 640, 640};
-    // cairo_region_t *reg = cairo_region_create_rectangle(&rec);
-
     GdkWindow *window;
     cairo_region_t *reg;
     GdkDrawingContext *context;
@@ -193,9 +192,6 @@ static gboolean cb_drawing_field(GtkWidget *widget, cairo_t *cr, gpointer data) 
 }
 
 static gboolean cb_drawing_map(GtkWidget *widget, cairo_t *cr, gpointer data) {
-    // const cairo_rectangle_int_t rec = {30, 30, 640, 640};
-    // cairo_region_t *reg = cairo_region_create_rectangle(&rec);
-
     GdkWindow *window;
     cairo_region_t *reg;
     GdkDrawingContext *context;
@@ -233,6 +229,9 @@ static gboolean timer_loop(GtkWidget *widget) {
 }
 
 void gtk_window() {
+    int argc = 0;
+    gtk_init(&argc, NULL);
+
     GtkWidget *window;
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -241,7 +240,6 @@ void gtk_window() {
     init_map();
     init_observe();
 
-    // gtk_widget_set_size_request(window, 300, 200);
     {
         GtkWidget *hbox;
         hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
@@ -294,7 +292,7 @@ void gtk_window() {
 
                 g_signal_connect(field, "draw", G_CALLBACK(cb_drawing_field), NULL);
                 g_signal_connect(field, "button_press_event", G_CALLBACK(cb_identify), NULL);
-                g_timeout_add(100, (GSourceFunc) timer_loop, field);
+                g_timeout_add(time_interval, (GSourceFunc) timer_loop, field);
                 gtk_widget_set_events(field,
                                       GDK_BUTTON_PRESS_MASK
                 );
@@ -319,7 +317,7 @@ void gtk_window() {
                 gtk_widget_set_size_request(map, 700, 700);
 
                 g_signal_connect(map, "draw", G_CALLBACK(cb_drawing_map), NULL);
-                g_timeout_add(100, (GSourceFunc) timer_loop, map);
+                g_timeout_add(time_interval, (GSourceFunc) timer_loop, map);
 
                 gtk_label_set_markup(GTK_LABEL(label), str);
 
@@ -334,4 +332,5 @@ void gtk_window() {
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     gtk_widget_show_all(window);
+    gtk_main();
 }
