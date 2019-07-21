@@ -1,7 +1,3 @@
-//
-// Created by kirohy on 19/07/20.
-//
-
 #ifndef FINAL_GLUT_DRAWINGS_H
 #define FINAL_GLUT_DRAWINGS_H
 

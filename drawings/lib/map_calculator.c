@@ -1,7 +1,3 @@
-//
-// Created by kirohy on 19/07/07.
-//
-
 #include <math.h>
 
 #include "map_calculator.h"
@@ -100,7 +96,6 @@ int calc_draw_points() {
     return 0;
 }
 
-// tanの加法定理
 static double calc_tan(double tan_default, double theta) {
     return (tan_default + tan(theta)) / (1 - tan_default * tan(theta));
 }

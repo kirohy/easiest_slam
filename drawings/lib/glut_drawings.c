@@ -1,7 +1,3 @@
-//
-// Created by kirohy on 19/07/20.
-//
-
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <GL/freeglut.h>
@@ -104,10 +100,10 @@ static void display(void) {
             {0.0,  0.0,  1.0}
     };
 
-    glColor3d(0.0, 0.0, 1.0);
 
     for (int i = 0; i < ObjectNum; i++) {
         if (ObjectList[i].type == CUBE_ONE) {
+            glColor3d(0.0, 0.0, 1.0);
             glTranslatef(ObjectList[i].x - CUBE_SIZE_ONE / 2, ObjectList[i].y - CUBE_SIZE_ONE / 2, 0.0);
 
             glPushMatrix();
@@ -123,6 +119,7 @@ static void display(void) {
 
             glTranslatef(-ObjectList[i].x + CUBE_SIZE_ONE / 2, -ObjectList[i].y + CUBE_SIZE_ONE / 2, 0.0);
         } else if (ObjectList[i].type == CUBE_TWO) {
+            glColor3d(0.0, 1.0, 0.0);
             glTranslatef(ObjectList[i].x, ObjectList[i].y, 0.0);
 
             glPushMatrix();

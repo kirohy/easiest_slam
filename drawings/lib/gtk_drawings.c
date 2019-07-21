@@ -1,7 +1,3 @@
-//
-// Created by kirohy on 19/07/07.
-//
-
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <math.h>
@@ -109,15 +105,16 @@ static void draw_spline_curve(cairo_t *cr) {
 static void draw_objects(cairo_t *cr) {
     if (ObjectNum > 0) {
         cairo_set_line_width(cr, 3);
-        cairo_set_source_rgb(cr, 0.0, 0.0, 1.0);
         for (int i = 0; i < ObjectNum; i++) {
             if (ObjectList[i].type == CUBE_ONE) {
+                cairo_set_source_rgb(cr, 0.0, 0.0, 1.0);
                 cairo_rectangle(cr, ObjectList[i].x + BasicOffset - CUBE_SIZE_ONE / 2,
                                 WINDOW_SIZE - ObjectList[i].y - BasicOffset - CUBE_SIZE_ONE / 2, CUBE_SIZE_ONE,
                                 CUBE_SIZE_ONE);
                 cairo_stroke_preserve(cr);
                 cairo_fill(cr);
             } else if (ObjectList[i].type == CUBE_TWO) {
+                cairo_set_source_rgb(cr, 0.0, 1.0, 0.0);
                 cairo_move_to(cr, ObjectList[i].x + BasicOffset - (CUBE_SIZE_TWO - 1) / 2,
                               WINDOW_SIZE - ObjectList[i].y - BasicOffset);
                 cairo_line_to(cr, ObjectList[i].x + BasicOffset,

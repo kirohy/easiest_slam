@@ -1,7 +1,3 @@
-//
-// Created by kirohy on 19/06/25.
-//
-
 #include "spline.h"
 #include "matrix.h"
 
@@ -29,7 +25,6 @@ void spline_points_sort(SplineBasePoints *Points) {
     }
 }
 
-// answerの上から4つずつが3次関数の係数
 int spline(SplineBasePoints Points, matrix *answer) {
     if (Points.num >= 3 && answer->row == (Points.num - 1) * 4 && answer->col == 1) {
         matrix A = mat_new((Points.num - 1) * 4, (Points.num - 1) * 4);
